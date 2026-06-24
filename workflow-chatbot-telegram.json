@@ -1,0 +1,216 @@
+{
+  "name": "Chatbot-telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        -128
+      ],
+      "id": "68d21766-a35a-4b16-b6ed-4b21056570dd",
+      "name": "Telegram Trigger",
+      "webhookId": "e1d3d047-3ad8-4b42-8fe0-c34fe5863052",
+      "credentials": {
+        "telegramApi": {
+          "id": "XNOkC2CIDufVcc3V",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=🌤️ A temperatura em {{ $json.name }} é de {{ Math.round($json.main.temp) }}°C.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        -176
+      ],
+      "id": "5392e28f-0627-4596-a966-bd05d1c03071",
+      "name": "Send a text message",
+      "webhookId": "b0f51d08-402f-4e8d-930e-4105ad71fd66",
+      "credentials": {
+        "telegramApi": {
+          "id": "XNOkC2CIDufVcc3V",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "```\nChatBot-Clima-Telegram\n```",
+        "height": 720,
+        "width": 2048,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -288
+      ],
+      "id": "3dd241ff-1e07-4e68-9231-aeebb003b2ac",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=❌ Cidade não encontrada. Use o formato \"Cidade, UF\" (ex.: São Paulo,SP).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        160
+      ],
+      "id": "9228801b-fe21-4611-9b34-530e61879a9e",
+      "name": "Send a text message1",
+      "webhookId": "b0f51d08-402f-4e8d-930e-4105ad71fd66",
+      "credentials": {
+        "telegramApi": {
+          "id": "XNOkC2CIDufVcc3V",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5a009ff-7d93-453a-847b-7675a484bc4a",
+              "name": "queue",
+              "value": "={{ $json.message.text.split(\",\")[0]}}, BR",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        -128
+      ],
+      "id": "fc12f301-1f55-4f51-9d7e-2656ddbc50e6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.queue }}"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "pt_br"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        192,
+        -128
+      ],
+      "id": "6ac4c186-abaa-47f1-8c89-f3592f5b30e3",
+      "name": "Pesquisa a Temperatura",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "qc0yVA6bnurVtcEF",
+          "name": "Query Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "9goZ5g31kAJVoGNA",
+          "name": "OpenRouter"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Pesquisa a Temperatura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pesquisa a Temperatura": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b592354c-6655-4934-9ec2-fb598f030482",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc61da08bd6c99be6c26979b90fc286eb7d37e7d5aa7312c048ec3aef42b2537"
+  },
+  "id": "U1DFo04itJCldGtk",
+  "tags": []
+}
